@@ -43,6 +43,35 @@ def FindGuage(RequiredAmps: int):
     
     return Minimum, AWG_LUT[Minimum][1]
 
+def GetVoltageDrop(current:float, distance:float, thickness:float):
+    return 2 * current * distance * CU_RESISTIVITY / thickness
+
+def FindGuage(RequiredAmps: int, MaxVoltageDrop: float):
+    """
+        Finds the lowest guage that will support our required amps while maintaining our voltage drop parameters
+        RequiredAmps: How many amps will the system on average be supporting (don't use instantaneous amperage, only average)
+        returns: A tuple (str, float) that contains the (guage, thickness)
+    """
+    Minimum: str = "NA"
+
+    for Guage, Properties in AWG_LUT.items():
+        if Properties[0] >= RequiredAmps:
+            if Minimum == "NA":
+                if GetVoltageDrop(args.current, args.distance, Properties[1]) <= MaxVoltageDrop:
+                    Minimum = Guage
+                else:
+                    return ("NA", -1)
+            elif Properties[1] < AWG_LUT[Minimum][1]:
+                if GetVoltageDrop(args.current, args.distance, Properties[1]) <= MaxVoltageDrop:
+                    Minimum = Guage
+                else:
+                    return ("NA", -1)
+    
+    if Minimum == "NA":
+        return ("NA", -1)
+    
+    return Minimum, AWG_LUT[Minimum][1]
+
 
 # GLOBAL VARS
 
@@ -51,7 +80,7 @@ Issues = []
 parser = argparse.ArgumentParser(prog="Wire Guage Thickness Calculator", description="Calculates the required wire guage for our drone.")
 op_mode = parser.add_argument_group("OPERATION MODE", "The method used by the requirement calculator")
 op_mode.add_argument("-o", "--op-mode", type=str, default="weight", help="Should we prioritise voltage drop or wire weight")
-op_mode.add_argument("-v", "--verbosity", type=int, default="4", help="How \"talkative\" should the program be.")
+op_mode.add_argument("-v", "--verbosity", type=int, default=4, help="How \"talkative\" should the program be.")
 
 elec_prop = parser.add_argument_group("ELECTRICAL PROPERTIES", "The physical specifications of the system.")
 elec_prop.add_argument("-I", "--current", type=float, help="The maximum load that the system will carry. Unit: Amperes")
@@ -102,7 +131,7 @@ if args.op_mode == "weight":
     MinGuage, GuageThickness = FindGuage(ActualCurrent)
 
     print("Calculating resultant voltage drop...")
-    VoltageDrop = 2 * args.current * args.distance * CU_RESISTIVITY / GuageThickness
+    VoltageDrop = GetVoltageDrop(args.current, args.distance, GuageThickness)
     print("Calculating the weight of the wire...")
     Weight = CU_DENSITY * GuageThickness * args.distance
     print(RESET)
@@ -119,10 +148,61 @@ if args.op_mode == "weight":
         print(RESET)
     elif args.verbosity > 2:
         print("DESIGN PARAMETERS")
+        print("Estimated Required Current Draw:", round(ActualCurrent,2), "A", sep=None)
+        print("Minimum Guage of the Wire:", MinGuage, "AWG", sep=None)
+        print("Guage Thickness:", round(GuageThickness,2), "m^2", sep=None)
+        print("Voltage Drop:", round(VoltageDrop,2), "V", sep=None)
+        print("Weight of the Wire:", round(Weight,2), "kg", sep=None)
+    elif args.verbosity > 1:
+        print(f"Guage: {MinGuage}AWG")
+        print(f"Voltage Drop: {VoltageDrop:.2f}V")
+        print(f"Weight: {Weight:.2f}kg")
+    elif args.verbosity > 0:
+        print(f"G: {MinGuage}AWG")
+        print(f"V: {VoltageDrop:.2f}V")
+        print(f"W: {Weight:.2f}kg")
+    else:
+        print(f"{MinGuage}")
+        print(f"{VoltageDrop:.2f}")
+        print(f"{Weight:.2f}")
+
+else:
+    ActualCurrent = args.current*min(1,(args.load+(SAFETY_MARGIN_CURRENT*args.load)))
+    print(YELLOW + "Calculating minimum wire guage (based on voltage)...")
+    MinGuage, GuageThickness = FindGuage(ActualCurrent, args.voltage)
+
+    print("Calculating resultant voltage drop...")
+    VoltageDrop = GetVoltageDrop(args.current, args.distance, GuageThickness)
+    print("Calculating the weight of the wire...")
+    Weight = CU_DENSITY * GuageThickness * args.distance
+    print(RESET)
+    
+    if args.verbosity > 3:
+        print(GREEN)
+        print("\t***** DESIGN PARAMETERS *****")
         print("Estimated Required Current Draw:\t", round(ActualCurrent,2), "A", sep=None)
         print("Minimum Guage of the Wire:\t\t", MinGuage, "AWG", sep=None)
         print("Guage Thickness:\t\t\t", round(GuageThickness,2), "m^2", sep=None)
         print("Voltage Drop:\t\t\t\t", round(VoltageDrop,2), "V", sep=None)
         print("Weight of the Wire:\t\t\t", round(Weight,2), "kg", sep=None)
-else:
-    pass
+        print("\t*****************************")
+        print(RESET)
+    elif args.verbosity > 2:
+        print("DESIGN PARAMETERS")
+        print("Estimated Required Current Draw:", round(ActualCurrent,2), "A", sep=None)
+        print("Minimum Guage of the Wire:", MinGuage, "AWG", sep=None)
+        print("Guage Thickness:", round(GuageThickness,2), "m^2", sep=None)
+        print("Voltage Drop:", round(VoltageDrop,2), "V", sep=None)
+        print("Weight of the Wire:", round(Weight,2), "kg", sep=None)
+    elif args.verbosity > 1:
+        print(f"Guage: {MinGuage}AWG")
+        print(f"Voltage Drop: {VoltageDrop:.2f}V")
+        print(f"Weight: {Weight:.2f}kg")
+    elif args.verbosity > 0:
+        print(f"G: {MinGuage}AWG")
+        print(f"V: {VoltageDrop:.2f}V")
+        print(f"W: {Weight:.2f}kg")
+    else:
+        print(f"{MinGuage}")
+        print(f"{VoltageDrop:.2f}")
+        print(f"{Weight:.2f}")
