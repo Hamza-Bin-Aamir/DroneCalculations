@@ -14,6 +14,7 @@ AWG_LUT = {
 }
 CU_RESISTIVITY = 1.724e-8 # Ω*m
 CU_DENSITY = 8960 # kg/m^3
+SAFETY_MARGIN_CURRENT = 0.5
 YELLOW = '\033[93m'
 GREEN = '\033[92m'
 RED = '\033[91m'
@@ -32,7 +33,9 @@ def FindGuage(RequiredAmps: int):
 
     for Guage, Properties in AWG_LUT.items():
         if Properties[0] >= RequiredAmps:
-            if Minimum == "NA" | Properties[1] < AWG_LUT[Minimum][1]:
+            if Minimum == "NA":
+                Minimum = Guage
+            elif Properties[1] < AWG_LUT[Minimum][1]:
                 Minimum = Guage
     
     if Minimum == "NA":
@@ -51,32 +54,32 @@ op_mode.add_argument("-o", "--op-mode", type=str, default="weight", help="Should
 op_mode.add_argument("-v", "--verbosity", type=int, default="4", help="How \"talkative\" should the program be.")
 
 elec_prop = parser.add_argument_group("ELECTRICAL PROPERTIES", "The physical specifications of the system.")
-elec_prop.add_argument("-I", "--current", type=float, help="The maximum load that the system will carry.")
-elec_prop.add_argument("-l", "--load", type=float, help="The hover load (as a percentage of maximum load).")
-elec_prop.add_argument("-V", "--voltage", type=float, help="The maximum allowable voltage drop.")
+elec_prop.add_argument("-I", "--current", type=float, help="The maximum load that the system will carry. Unit: Amperes")
+elec_prop.add_argument("-l", "--load", type=float, help="The hover load (as a percentage of maximum load). Unit: %age of max load")
+elec_prop.add_argument("-V", "--voltage", type=float, help="The maximum allowable voltage drop. Unit: Volts")
 
 dimensions = parser.add_argument_group("DIMENSIONS", "The physical dimensions of the wire.")
-dimensions.add_argument("-d", "--distance", type=float, help="The distance (in meters) the wire must cover.")
-dimensions.add_argument("-g", "--guage", type=str, help="The guage of the wire (AWG).")
+dimensions.add_argument("-d", "--distance", type=float, help="The distance (in meters) the wire must cover. Unit: Meters")
+dimensions.add_argument("-g", "--guage", type=str, help="The guage of the wire. Unit: AWG")
 
 args = parser.parse_args()
 
 if args.op_mode == "weight":
     if not args.current:
-        Issues.append("MISSING ARGUMENT: '--current' or '-I' -- You must specify the maximum current of the system.")
+        Issues.append("MISSING ARGUMENT: '--current' or '-I' -- You must specify the maximum current of the system. Unit: Amperes")
     if not args.load:
-        Issues.append("MISSING ARGUMENT: '--load' or '-l' -- You must specify how much load the system has on hover (%age of max load).")
+        Issues.append("MISSING ARGUMENT: '--load' or '-l' -- You must specify how much load the system has on hover. Unit: %age of max load")
     if not args.distance:
-        Issues.append("MISSING ARGUMENT: '--distance' or '-d' -- You must specify how long the wire is.")
+        Issues.append("MISSING ARGUMENT: '--distance' or '-d' -- You must specify how long the wire is. Unit: Meters")
 elif args.op_mode == "voltage":
     if not args.current:
-        Issues.append("MISSING ARGUMENT: '--current' or '-I' -- You must specify the maximum current of the system.")
+        Issues.append("MISSING ARGUMENT: '--current' or '-I' -- You must specify the maximum current of the system. Unit: Amperes")
     if not args.load:
-        Issues.append("MISSING ARGUMENT: '--load' or '-l' -- You must specify how much load the system has on hover (%age of max load).")
+        Issues.append("MISSING ARGUMENT: '--load' or '-l' -- You must specify how much load the system has on hover. Unit: %age of max load")
     if not args.distance:
-        Issues.append("MISSING ARGUMENT: '--distance' or '-d' -- You must specify how long the wire is.")
+        Issues.append("MISSING ARGUMENT: '--distance' or '-d' -- You must specify how long the wire is. Unit: Meters")
     if not args.voltage:
-        Issues.append("MISSING ARGUMENT: '--voltage' or '-V' -- You must specify the maximum allowable voltage drop.")
+        Issues.append("MISSING ARGUMENT: '--voltage' or '-V' -- You must specify the maximum allowable voltage drop. Unit: Volts")
 else:
     Issues.append("INVALID OPERATION MODE: '--op-mode' or '-o' can only have the values: 'weight' or 'voltage'")
 
@@ -93,3 +96,33 @@ if Issues:
     else:
         exit(-1)
     
+if args.op_mode == "weight":
+    ActualCurrent = args.current*min(1,(args.load+(SAFETY_MARGIN_CURRENT*args.load)))
+    print(YELLOW + "Calculating minimum wire guage...")
+    MinGuage, GuageThickness = FindGuage(ActualCurrent)
+
+    print("Calculating resultant voltage drop...")
+    VoltageDrop = 2 * args.current * args.distance * CU_RESISTIVITY / GuageThickness
+    print("Calculating the weight of the wire...")
+    Weight = CU_DENSITY * GuageThickness * args.distance
+    print(RESET)
+
+    if args.verbosity > 3:
+        print(GREEN)
+        print("\t***** DESIGN PARAMETERS *****")
+        print("Estimated Required Current Draw:\t", round(ActualCurrent,2), "A", sep=None)
+        print("Minimum Guage of the Wire:\t\t", MinGuage, "AWG", sep=None)
+        print("Guage Thickness:\t\t\t", round(GuageThickness,2), "m^2", sep=None)
+        print("Voltage Drop:\t\t\t\t", round(VoltageDrop,2), "V", sep=None)
+        print("Weight of the Wire:\t\t\t", round(Weight,2), "kg", sep=None)
+        print("\t*****************************")
+        print(RESET)
+    elif args.verbosity > 2:
+        print("DESIGN PARAMETERS")
+        print("Estimated Required Current Draw:\t", round(ActualCurrent,2), "A", sep=None)
+        print("Minimum Guage of the Wire:\t\t", MinGuage, "AWG", sep=None)
+        print("Guage Thickness:\t\t\t", round(GuageThickness,2), "m^2", sep=None)
+        print("Voltage Drop:\t\t\t\t", round(VoltageDrop,2), "V", sep=None)
+        print("Weight of the Wire:\t\t\t", round(Weight,2), "kg", sep=None)
+else:
+    pass
