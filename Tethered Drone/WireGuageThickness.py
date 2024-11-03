@@ -22,7 +22,7 @@ RESET = '\033[0m'
 
 # FUNCTION DEFS
 
-def FindGuage(RequiredAmps: int):
+def FindGuageA(RequiredAmps: int):
     """
         Finds the lowest guage that will support our required amps
         RequiredAmps: How many amps will the system on average be supporting (don't use instantaneous amperage, only average)
@@ -126,7 +126,7 @@ if Issues:
 if args.op_mode == "weight":
     ActualCurrent = args.current*min(1,(args.load+(SAFETY_MARGIN_CURRENT*args.load)))
     print(YELLOW + "Calculating minimum wire guage...")
-    MinGuage, GuageThickness = FindGuage(ActualCurrent)
+    MinGuage, GuageThickness = FindGuageA(ActualCurrent)
 
     print("Calculating resultant voltage drop...")
     VoltageDrop = GetVoltageDrop(args.current, args.distance, GuageThickness)
@@ -139,7 +139,7 @@ if args.op_mode == "weight":
         print("\t***** DESIGN PARAMETERS *****")
         print("Estimated Required Current Draw:\t", round(ActualCurrent,2), "A", sep=None)
         print("Minimum Guage of the Wire:\t\t", MinGuage, "AWG", sep=None)
-        print("Guage Thickness:\t\t\t", round(GuageThickness,2), "m^2", sep=None)
+        print(f"Guage Thickness:\t\t\t {GuageThickness:.2e}", "m^2", sep=None)
         print("Voltage Drop:\t\t\t\t", round(VoltageDrop,2), "V", sep=None)
         print("Weight of the Wire:\t\t\t", round(Weight,2), "kg", sep=None)
         print("\t*****************************")
@@ -148,7 +148,7 @@ if args.op_mode == "weight":
         print("DESIGN PARAMETERS")
         print("Estimated Required Current Draw:", round(ActualCurrent,2), "A", sep=None)
         print("Minimum Guage of the Wire:", MinGuage, "AWG", sep=None)
-        print("Guage Thickness:", round(GuageThickness,2), "m^2", sep=None)
+        print(f"Guage Thickness: {GuageThickness:.2e}", "m^2", sep=None)
         print("Voltage Drop:", round(VoltageDrop,2), "V", sep=None)
         print("Weight of the Wire:", round(Weight,2), "kg", sep=None)
     elif args.verbosity > 1:
@@ -180,7 +180,7 @@ else:
         print("\t***** DESIGN PARAMETERS *****")
         print("Estimated Required Current Draw:\t", round(ActualCurrent,2), "A", sep=None)
         print("Minimum Guage of the Wire:\t\t", MinGuage, "AWG", sep=None)
-        print("Guage Thickness:\t\t\t", round(GuageThickness,2), "m^2", sep=None)
+        print(f"Guage Thickness:\t\t\t {GuageThickness:.2e}", "m^2", sep=None)
         print("Voltage Drop:\t\t\t\t", round(VoltageDrop,2), "V", sep=None)
         print("Weight of the Wire:\t\t\t", round(Weight,2), "kg", sep=None)
         print("\t*****************************")
@@ -189,7 +189,7 @@ else:
         print("DESIGN PARAMETERS")
         print("Estimated Required Current Draw:", round(ActualCurrent,2), "A", sep=None)
         print("Minimum Guage of the Wire:", MinGuage, "AWG", sep=None)
-        print("Guage Thickness:", round(GuageThickness,2), "m^2", sep=None)
+        print(f"Guage Thickness: {GuageThickness:.2e}", "m^2", sep=None)
         print("Voltage Drop:", round(VoltageDrop,2), "V", sep=None)
         print("Weight of the Wire:", round(Weight,2), "kg", sep=None)
     elif args.verbosity > 1:
