@@ -64,8 +64,6 @@ def FindGuage(RequiredAmps: int, MaxVoltageDrop: float):
             elif Properties[1] < AWG_LUT[Minimum][1]:
                 if GetVoltageDrop(args.current, args.distance, Properties[1]) <= MaxVoltageDrop:
                     Minimum = Guage
-                else:
-                    return ("NA", -1)
     
     if Minimum == "NA":
         return ("NA", -1)
@@ -176,7 +174,7 @@ else:
     print("Calculating the weight of the wire...")
     Weight = CU_DENSITY * GuageThickness * args.distance
     print(RESET)
-    
+
     if args.verbosity > 3:
         print(GREEN)
         print("\t***** DESIGN PARAMETERS *****")
