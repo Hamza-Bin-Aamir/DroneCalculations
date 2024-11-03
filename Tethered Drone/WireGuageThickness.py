@@ -1,6 +1,7 @@
 import argparse
 
 # CONSTANTS
+
 AWG_LUT = {
     "000"   : (200, 8.5e-5), # Current (A), Thickness (m^2)
     "0"     : (150, 5.35e-5),
@@ -13,10 +14,35 @@ AWG_LUT = {
 }
 CU_RESISTIVITY = 1.724e-8 # Ω*m
 CU_DENSITY = 8960 # kg/m^3
+YELLOW = '\033[93m'
+GREEN = '\033[92m'
 RED = '\033[91m'
 RESET = '\033[0m'
 
+# FUNCTION DEFS
+
+def FindGuage(RequiredAmps: int):
+    """
+        Finds the lowest guage that will support our required amps
+        RequiredAmps: How many amps will the system on average be supporting (don't use instantaneous amperage, only average)
+        returns: A tuple (str, float) that contains the (guage, thickness)
+    """
+
+    Minimum: str = "NA"
+
+    for Guage, Properties in AWG_LUT.items():
+        if Properties[0] >= RequiredAmps:
+            if Minimum == "NA" | Properties[1] < AWG_LUT[Minimum][1]:
+                Minimum = Guage
+    
+    if Minimum == "NA":
+        return ("NA", -1)
+    
+    return Minimum, AWG_LUT[Minimum][1]
+
+
 # GLOBAL VARS
+
 Issues = []
 
 parser = argparse.ArgumentParser(prog="Wire Guage Thickness Calculator", description="Calculates the required wire guage for our drone.")
@@ -55,11 +81,15 @@ else:
     Issues.append("INVALID OPERATION MODE: '--op-mode' or '-o' can only have the values: 'weight' or 'voltage'")
 
 if Issues:
-    parser.print_help()
+    if args.verbosity > 0:
+        parser.print_help()
 
-    print(RED)
-    for Issue in Issues:
-        print(Issue)
-    print(RESET)
+        print(RED)
+        for Issue in Issues:
+            print(Issue)
+        print(RESET)
 
-    exit()
+        exit(-1)
+    else:
+        exit(-1)
+    
