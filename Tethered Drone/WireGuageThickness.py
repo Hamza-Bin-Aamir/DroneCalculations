@@ -1,5 +1,6 @@
 import argparse
 
+# CONSTANTS
 AWG_LUT = {
     "000"   : (200, 8.5e-5), # Current (A), Thickness (m^2)
     "0"     : (150, 5.35e-5),
@@ -10,9 +11,12 @@ AWG_LUT = {
     "12"    : (20, 3.31e-6),
     "14"    : (15, 2.08e-6),
 }
-CuResistivity = 1.724e-8 # Ω*m
-CuDensity = 8960 # kg/m^3
+CU_RESISTIVITY = 1.724e-8 # Ω*m
+CU_DENSITY = 8960 # kg/m^3
+RED = '\033[91m'
+RESET = '\033[0m'
 
+# GLOBAL VARS
 Issues = []
 
 parser = argparse.ArgumentParser(prog="Wire Guage Thickness Calculator", description="Calculates the required wire guage for our drone.")
@@ -31,3 +35,31 @@ dimensions.add_argument("-g", "--guage", type=str, help="The guage of the wire (
 
 args = parser.parse_args()
 
+if args.op_mode == "weight":
+    if not args.current:
+        Issues.append("MISSING ARGUMENT: '--current' or '-I' -- You must specify the maximum current of the system.")
+    if not args.load:
+        Issues.append("MISSING ARGUMENT: '--load' or '-l' -- You must specify how much load the system has on hover (%age of max load).")
+    if not args.distance:
+        Issues.append("MISSING ARGUMENT: '--distance' or '-d' -- You must specify how long the wire is.")
+elif args.op_mode == "voltage":
+    if not args.current:
+        Issues.append("MISSING ARGUMENT: '--current' or '-I' -- You must specify the maximum current of the system.")
+    if not args.load:
+        Issues.append("MISSING ARGUMENT: '--load' or '-l' -- You must specify how much load the system has on hover (%age of max load).")
+    if not args.distance:
+        Issues.append("MISSING ARGUMENT: '--distance' or '-d' -- You must specify how long the wire is.")
+    if not args.voltage:
+        Issues.append("MISSING ARGUMENT: '--voltage' or '-V' -- You must specify the maximum allowable voltage drop.")
+else:
+    Issues.append("INVALID OPERATION MODE: '--op-mode' or '-o' can only have the values: 'weight' or 'voltage'")
+
+if Issues:
+    parser.print_help()
+
+    print(RED)
+    for Issue in Issues:
+        print(Issue)
+    print(RESET)
+
+    exit()
