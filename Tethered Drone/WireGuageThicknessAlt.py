@@ -1,4 +1,5 @@
-# CONSTANTS
+import atexit
+#  CONSTANTS
 
 AWG_LUT = {
     "000"   : (200, 8.5e-5), # Current (A), Thickness (m^2)
@@ -17,6 +18,8 @@ YELLOW = '\033[93m'
 GREEN = '\033[92m'
 RED = '\033[91m'
 RESET = '\033[0m'
+
+atexit.register(print, RESET)
 
 # FUNCTION DEFS
 
