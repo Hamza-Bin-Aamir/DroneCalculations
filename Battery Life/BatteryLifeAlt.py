@@ -10,7 +10,7 @@ atexit.register(print, RESET)
 print(YELLOW + "*** MOTOR PARAMETERS ***")
 MotorCount = int(input("Please specify the number of motors: "))
 MotorAmp = float(input("Please specify the amperage of each motor (A): "))
-MotorLoad = float(input("Please specify the %age load at which the motor hovers: "))
+MotorLoad = float(input("Please specify the %age load at which the motor hovers: ")); MotorLoad /= 100
 print("*** BATTERY PARAMETERS ***")
 BatteryCapacitymAh = int(input("Please enter the capacity of your battery (mAh): "))
 BatteryCapacityAh = BatteryCapacitymAh/1000

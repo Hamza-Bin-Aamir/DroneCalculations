@@ -51,12 +51,14 @@ print(YELLOW)
 print("***OPERATIONAL PARAMETERS***")
 NumMotors   = int(input("Please specify the number of motors: "))
 MotorAmps   = float(input("Please specify the maximum amperage of the motor: "))
+Load        = float(input("Please specify the hover load of the motor (%age throttle): ")); Load /= 100
 MotorVoltage= float(input("Please specify the operating voltage of the motor: "))
 
 print("***DIMENSIONAL PARAMETERS***")
 WeightOfDrone = float(input("Please specify the weight of the drone (kg): "))
 WireLength = float(input("Please specify the length of the wire (m): "))
 
+ActualAmps = (MotorAmps*NumMotors) * (min(1, Load + (SAFETY_MARGIN_CURRENT*Load)))
 MinGuage, GuageThickness = FindGuage(MotorAmps*NumMotors)
 VoltageDrop = GetVoltageDrop(MotorAmps*NumMotors, WireLength, GuageThickness)
 Weight = CU_DENSITY* GuageThickness * WireLength

@@ -127,7 +127,7 @@ if Issues:
         exit(-1)
     
 if args.op_mode == "weight":
-    ActualCurrent = args.current*min(1,(args.load+(SAFETY_MARGIN_CURRENT*args.load)))
+    ActualCurrent = args.current*min(1,((args.load/100)+(SAFETY_MARGIN_CURRENT*(args.load/100))))
     print(YELLOW + "Calculating minimum wire guage...")
     MinGuage, GuageThickness = FindGuageA(ActualCurrent)
 
@@ -168,7 +168,7 @@ if args.op_mode == "weight":
         print(f"{Weight:.2f}")
 
 else:
-    ActualCurrent = args.current*min(1,(args.load+(SAFETY_MARGIN_CURRENT*args.load)))
+    ActualCurrent = args.current*min(1,((args.load/100)+(SAFETY_MARGIN_CURRENT*(args.load/100))))
     print(YELLOW + "Calculating minimum wire guage (based on voltage)...")
     MinGuage, GuageThickness = FindGuage(ActualCurrent, args.voltage)
 
