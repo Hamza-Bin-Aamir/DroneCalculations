@@ -13,12 +13,12 @@ OperationMode = ArgumentParser.add_argument_group("Operation Mode", "Parameters 
 OperationMode.add_argument("-v", "--verbosity", default=1, help="How detailed should the program be when printing.")
 
 MotorParameters = ArgumentParser.add_argument_group("Motor Parameters", "Parameters that define the motor's specifications.")
-MotorParameters.add_argument("-n", "--motor-count", "--num-motors", help="Number of motors on the drone.")
-MotorParameters.add_argument("-A", "--motor-amps", help="Amps per motor.")
-MotorParameters.add_argument("-l", "--hover-load", help="The load on the motor at hover (%age of total amps).")
+MotorParameters.add_argument("-n", "--motor-count", "--num-motors", type=int, help="Number of motors on the drone.")
+MotorParameters.add_argument("-A", "--motor-amps", type=float, help="Amps per motor.")
+MotorParameters.add_argument("-l", "--hover-load", type=float, help="The load on the motor at hover (percentage of total amps).")
 
 BatteryParameters = ArgumentParser.add_argument_group("Battery Parameters", "Parameters that define the battery's specifications.")
-BatteryParameters.add_argument("-c", "--capacity", help="Battery capacity in milliAmpereHours")
+BatteryParameters.add_argument("-c", "--capacity", type=int, help="Battery capacity in milliAmpereHours")
 
 Arguments = ArgumentParser.parse_args()
 
@@ -36,3 +36,11 @@ if Issues:
         print(Issue)
     exit(-1)
 
+CapacityAh = Arguments.capacity / 1000
+LoadPercentage = Arguments.hover_load / 100
+
+HourTime = CapacityAh / (Arguments.motor_amps * Arguments.motor_count * LoadPercentage)
+
+print(GREEN + "YOUR BATTERY WILL LAST YOU " + YELLOW + f" {HourTime:.2f} HOURS" + GREEN + ".") if Arguments.verbosity > 1 else 0
+print(f"FLIGHT TIME: {HourTime} HOURS") if Arguments.verbosity == 1 else 0
+print(f"HourTime") if Arguments.verbosity == 0 else 0
