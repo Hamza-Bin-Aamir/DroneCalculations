@@ -81,7 +81,7 @@ Issues = []
 parser = argparse.ArgumentParser(prog="Wire Guage Thickness Calculator", description="Calculates the required wire guage for our drone.")
 op_mode = parser.add_argument_group("OPERATION MODE", "The method used by the requirement calculator")
 op_mode.add_argument("-o", "--op-mode", type=str, default="weight", help="Should we prioritise voltage drop or wire weight")
-op_mode.add_argument("-v", "--verbosity", type=int, default=4, help="How \"talkative\" should the program be.")
+op_mode.add_argument("-v", "--verbosity", type=int, default=2, help="How \"talkative\" should the program be.")
 
 elec_prop = parser.add_argument_group("ELECTRICAL PROPERTIES", "The physical specifications of the system.")
 elec_prop.add_argument("-I", "--current", type=float, help="The maximum load that the system will carry. Unit: Amperes")
@@ -128,12 +128,8 @@ if Issues:
     
 if args.op_mode == "weight":
     ActualCurrent = args.current*min(1,((args.load/100)+(SAFETY_MARGIN_CURRENT*(args.load/100))))
-    print(YELLOW + "Calculating minimum wire guage...")
     MinGuage, GuageThickness = FindGuageA(ActualCurrent)
-
-    print("Calculating resultant voltage drop...")
     VoltageDrop = GetVoltageDrop(args.current, args.distance, GuageThickness)
-    print("Calculating the weight of the wire...")
     Weight = CU_DENSITY * GuageThickness * args.distance
     print(RESET)
 
